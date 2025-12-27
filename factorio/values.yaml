@@ -4,11 +4,11 @@ namespace:
 
 image:
   repository: factoriotools/factorio
-  tag: stable
+  tag: latest
   pullPolicy: IfNotPresent
 
 service:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
     game: 34197
     rcon: 27015
@@ -23,7 +23,7 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
-          servicePort: 27015
+          servicePort: 34197
   tls:
     - secretName: brishencorp-com-tls
       hosts:
