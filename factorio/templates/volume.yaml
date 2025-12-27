@@ -1,3 +1,24 @@
+{{- if .Values.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ template "factorio.fullname" . }}-pv
+  labels:
+    app: {{ template "factorio.name" . }}
+    chart: {{ template "factorio.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  capacity:
+    storage: {{ .Values.persistence.size | quote }}
+  accessModes:
+{{ toYaml .Values.persistence.accessModes | indent 4 }}
+  persistentVolumeReclaimPolicy: {{ .Values.persistence.reclaimPolicy }}
+  storageClassName: {{ .Values.persistence.storageClassName | quote }}
+  volumeMode: {{ .Values.persistence.volumeMode }}
+  hostPath:
+    path: {{ .Values.persistence.hostPath }}
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -8,16 +29,12 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  metadata:
-    labels:
-      app: {{ template "factorio.name" . }}
-      release: {{ .Release.Name }}
-
-  storageClassName: {{ template "factorio.fullname" . }}-storage-class
-
   accessModes:
-    - ReadWriteOnce
-
+{{ toYaml .Values.persistence.accessModes | indent 4 }}
   resources:
     requests:
-      storage: "1Gi"
+      storage: {{ .Values.persistence.size | quote }}
+  storageClassName: {{ .Values.persistence.storageClassName | quote }}
+  volumeMode: {{ .Values.persistence.volumeMode }}
+  volumeName: {{ template "factorio.fullname" . }}-pv
+{{- end }}

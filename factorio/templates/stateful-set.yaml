@@ -1,4 +1,4 @@
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ template "factorio.fullname" . }}
@@ -20,22 +20,32 @@ spec:
         app: {{ template "factorio.name" . }}
         release: {{ .Release.Name }}
     spec:
+      {{ with .Values.podSecurityContext }}
+      securityContext:
+{{ toYaml . | nindent 8 }}
+      {{ end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: factorio-udp
-              containerPort: 34197
+              containerPort: {{ .Values.service.ports.game }}
               protocol: UDP
-            - name: factorio-tcp
-              containerPort: 27015
+            - name: factorio-rcon
+              containerPort: {{ .Values.service.ports.rcon }}
               protocol: TCP
           volumeMounts:
             - name: factorio-data
               mountPath: /factorio
+          {{ with .Values.resources }}
+          resources:
+{{ toYaml . | nindent 12 }}
+          {{ end }}
+          {{ with .Values.securityContext }}
           securityContext:
-            runAsUser: 0
+{{ toYaml . | nindent 12 }}
+          {{ end }}
       volumes:
         - name: factorio-data
           persistentVolumeClaim:
