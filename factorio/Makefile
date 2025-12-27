@@ -37,13 +37,14 @@ deploy:
 	helm upgrade \
 		--debug \
 		--install \
+		--create-namespace \
 		--namespace "${NAMESPACE}" \
 		${HELM_ARGS} "${CHART_NAME}" .
 
 # rm deletes the app deployment from the cluster
 rm: 
 	$(call log, ok, Deleting release)
-	helm delete --purge "${CHART_NAME}"
+	helm uninstall --namespace "${NAMESPACE}" "${CHART_NAME}"
 
 # rm-orphaned removes all deployment resources manually in the event that they 
 # have been orphaned during a failed install
