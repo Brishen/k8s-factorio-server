@@ -2,22 +2,30 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ template "factorio.fullname" . }}
+  namespace: {{ .Values.namespace.name | default .Release.Namespace }}
   labels:
     app: {{ template "factorio.name" . }}
     chart: {{ template "factorio.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
+  {{- with .Values.service.labels }}
+{{ toYaml . | indent 4 }}
+  {{- end }}
+  {{- with .Values.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
 
 spec:
-  type: NodePort
+  type: {{ .Values.service.type | default "ClusterIP" }}
   ports:
     - name: factorio-udp
-      port: 34197
-      targetPort: 34197
+      port: {{ .Values.service.ports.gameUdp }}
+      targetPort: {{ .Values.service.ports.gameUdp }}
       protocol: UDP 
     - name: factorio-tcp
-      port: 27015
-      targetPort: 27015
+      port: {{ .Values.service.ports.gameTcp }}
+      targetPort: {{ .Values.service.ports.gameTcp }}
       protocol: TCP
   selector:
     app: {{ template "factorio.name" . }}

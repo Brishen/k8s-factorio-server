@@ -30,3 +30,14 @@ Create chart name and version as used by the chart label.
 {{- define "factorio.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{/*
+Return the service account name to use
+*/}}
+{{- define "factorio.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{- default (include "factorio.fullname" .) .Values.serviceAccount.name -}}
+{{- else -}}
+{{- default "default" .Values.serviceAccount.name -}}
+{{- end -}}
+{{- end -}}

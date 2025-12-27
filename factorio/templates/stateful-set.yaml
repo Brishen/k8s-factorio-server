@@ -1,7 +1,8 @@
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ template "factorio.fullname" . }}
+  namespace: {{ .Values.namespace.name | default .Release.Namespace }}
   labels:
     app: {{ template "factorio.name" . }}
     chart: {{ template "factorio.chart" . }}
@@ -19,24 +20,40 @@ spec:
       labels:
         app: {{ template "factorio.name" . }}
         release: {{ .Release.Name }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
     spec:
+      serviceAccountName: {{ template "factorio.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+{{ toYaml . | indent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: factorio-udp
-              containerPort: 34197
+              containerPort: {{ .Values.service.ports.gameUdp }}
               protocol: UDP
             - name: factorio-tcp
-              containerPort: 27015
+              containerPort: {{ .Values.service.ports.gameTcp }}
               protocol: TCP
           volumeMounts:
             - name: factorio-data
-              mountPath: /factorio
+              mountPath: {{ .Values.persistence.dataPath }}
+          {{- with .Values.securityContext }}
           securityContext:
-            runAsUser: 0
+{{ toYaml . | indent 12 }}
+          {{- end }}
       volumes:
+{{- if .Values.persistence.enabled }}
         - name: factorio-data
           persistentVolumeClaim:
-            claimName: {{ template "factorio.fullname" . }}-data
+            claimName: {{ default (printf "%s-data" (include "factorio.fullname" .)) .Values.persistence.existingClaim }}
+{{- else }}
+        - name: factorio-data
+          emptyDir: {}
+{{- end }}
