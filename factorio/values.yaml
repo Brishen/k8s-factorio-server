@@ -1,12 +1,46 @@
+namespace:
+  create: true
+  name: factorio
+
 image:
-  repository: dtandersen/factorio
+  repository: factoriotools/factorio
   tag: stable
   pullPolicy: IfNotPresent
 
+service:
+  type: ClusterIP
+  annotations: {}
+  ports:
+    game:
+      port: 34197
+      protocol: UDP
+    rcon:
+      port: 27015
+      protocol: TCP
+
 ingress:
+  enabled: true
+  className: traefik
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: "factorio.noahh.io., factorio.noahhuppert.com."
-    kubernetes.io/ingress.class: "gce"
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
   hosts:
-    - factorio.noahh.io
-    - factorio.noahhuppert.com
+    - host: factorio.brishencorp.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: brishencorp-com-tls
+      hosts:
+        - factorio.brishencorp.com
+
+persistence:
+  enabled: true
+  existingClaim: ""
+  size: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  hostPath: /var/lib/factorio
+  reclaimPolicy: Retain
+  annotations: {}
+  labels: {}

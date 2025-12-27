@@ -7,18 +7,22 @@ metadata:
     chart: {{ template "factorio.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
+{{- with .Values.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
 
 spec:
-  type: NodePort
+  type: {{ .Values.service.type }}
   ports:
     - name: factorio-udp
-      port: 34197
-      targetPort: 34197
-      protocol: UDP 
+      port: {{ .Values.service.ports.game.port }}
+      targetPort: {{ .Values.service.ports.game.port }}
+      protocol: {{ .Values.service.ports.game.protocol | default "UDP" }}
     - name: factorio-tcp
-      port: 27015
-      targetPort: 27015
-      protocol: TCP
+      port: {{ .Values.service.ports.rcon.port }}
+      targetPort: {{ .Values.service.ports.rcon.port }}
+      protocol: {{ .Values.service.ports.rcon.protocol | default "TCP" }}
   selector:
     app: {{ template "factorio.name" . }}
     release: {{ .Release.Name }}

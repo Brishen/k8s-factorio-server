@@ -37,13 +37,14 @@ deploy:
 	helm upgrade \
 		--debug \
 		--install \
+		--create-namespace \
 		--namespace "${NAMESPACE}" \
 		${HELM_ARGS} "${CHART_NAME}" .
 
 # rm deletes the app deployment from the cluster
 rm: 
 	$(call log, ok, Deleting release)
-	helm delete --purge "${CHART_NAME}"
+	helm uninstall "${CHART_NAME}" --namespace "${NAMESPACE}"
 
 # rm-orphaned removes all deployment resources manually in the event that they 
 # have been orphaned during a failed install
@@ -58,4 +59,4 @@ rm-orphaned:
 	kubectl -n "${NAMESPACE}" delete ingress "${CHART_NAME}" || true
 
 	$(call log, ok, Deleting Persistent Volume Claim)
-	kubectl -n "${NAMESPACE}" delete pvc "${CHART_NAME}-saves" || true
+	kubectl -n "${NAMESPACE}" delete pvc "${CHART_NAME}-data" || true

@@ -13,13 +13,20 @@ Factorio server hosted on Kubernetes.
 
 # Overview
 Provides a Helm chart in `factorio/` which runs the 
-[Factorio headless server](https://www.factorio.com/download-headless).  
+[Factorio headless server](https://www.factorio.com/download-headless) using the
+maintained [factoriotools/factorio](https://hub.docker.com/r/factoriotools/factorio)
+container image.  
 
 Deploy this chart by navigating into `factorio/` and running:
 
 ```
 make
 ```
+
+The chart will create the `factorio` namespace (if it does not already exist),
+deploy a StatefulSet with persistent storage for saves, and configure a Traefik
+Ingress for `factorio.brishencorp.com` secured by the `brishencorp-com-tls`
+secret.
 
 # Finding The Factorio Pod Name
 To find the name of the pod running your Factorio server execute:
