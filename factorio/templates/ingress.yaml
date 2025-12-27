@@ -1,8 +1,10 @@
+{{- if .Values.ingress.enabled }}
 {{- $fullName := include "factorio.fullname" . -}}
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
+  namespace: {{ .Values.namespace.name | default .Release.Namespace }}
   labels:
     app: {{ template "factorio.name" . }}
     chart: {{ template "factorio.chart" . }}
@@ -13,18 +15,26 @@ metadata:
 {{ toYaml . | indent 4 }}
 {{- end }}
 spec:
+{{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+{{- end }}
+{{- if .Values.ingress.tls }}
+  tls:
+{{ toYaml .Values.ingress.tls | indent 4 }}
+{{- end }}
   rules:
   {{- range .Values.ingress.hosts }}
-    - host: {{ . }}
+    - host: {{ .host }}
       http:
         paths:
-          - backend:
-              serviceName: {{ $fullName }}
-              servicePort: 34197
-    - host: {{ . }}
-      http:
-        paths:
-          - backend:
-              serviceName: {{ $fullName }}
-              servicePort: 27015
-  {{ end }}
+        {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $.Values.service.ports.gameTcp }}
+        {{- end }}
+  {{- end }}
+{{- end }}

@@ -1,12 +1,57 @@
 image:
-  repository: dtandersen/factorio
+  repository: factoriotools/factorio
   tag: stable
   pullPolicy: IfNotPresent
 
+nameOverride: ""
+fullnameOverride: ""
+
+namespace:
+  name: factorio
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  annotations: {}
+  labels: {}
+  ports:
+    gameUdp: 34197
+    gameTcp: 27015
+
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: factorio-static
+  volumeMode: Filesystem
+  size: 10Gi
+  dataPath: /factorio
+  annotations: {}
+  labels: {}
+  reclaimPolicy: Retain
+  hostPath: /var/lib/factorio/data
+  existingClaim: ""
+
 ingress:
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: "factorio.noahh.io., factorio.noahhuppert.com."
-    kubernetes.io/ingress.class: "gce"
+  enabled: true
+  className: traefik
+  annotations: {}
   hosts:
-    - factorio.noahh.io
-    - factorio.noahhuppert.com
+    - host: factorio.brishencorp.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: brishencorp-com-tls
+      hosts:
+        - factorio.brishencorp.com

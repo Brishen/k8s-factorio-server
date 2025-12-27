@@ -1,5 +1,6 @@
+{{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) }}
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: PersistentVolume
 metadata:
   name: {{ template "factorio.fullname" . }}-data
   labels:
@@ -7,17 +8,57 @@ metadata:
     chart: {{ template "factorio.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
+{{- with .Values.persistence.labels }}
+{{ toYaml . | indent 2 }}
+{{- end }}
+{{- with .Values.persistence.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
 spec:
-  metadata:
-    labels:
-      app: {{ template "factorio.name" . }}
-      release: {{ .Release.Name }}
-
-  storageClassName: {{ template "factorio.fullname" . }}-storage-class
-
+  capacity:
+    storage: {{ .Values.persistence.size }}
+  volumeMode: {{ .Values.persistence.volumeMode }}
   accessModes:
-    - ReadWriteOnce
-
+{{- range .Values.persistence.accessModes }}
+    - {{ . | quote }}
+{{- end }}
+  persistentVolumeReclaimPolicy: {{ .Values.persistence.reclaimPolicy }}
+{{- if .Values.persistence.storageClassName }}
+  storageClassName: {{ .Values.persistence.storageClassName }}
+{{- end }}
+{{- if .Values.persistence.hostPath }}
+  hostPath:
+    path: {{ .Values.persistence.hostPath | quote }}
+{{- end }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ template "factorio.fullname" . }}-data
+  namespace: {{ .Values.namespace.name | default .Release.Namespace }}
+  labels:
+    app: {{ template "factorio.name" . }}
+    chart: {{ template "factorio.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{- with .Values.persistence.labels }}
+{{ toYaml . | indent 2 }}
+{{- end }}
+{{- with .Values.persistence.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  accessModes:
+{{- range .Values.persistence.accessModes }}
+    - {{ . | quote }}
+{{- end }}
+{{- if .Values.persistence.storageClassName }}
+  storageClassName: {{ .Values.persistence.storageClassName }}
+{{- end }}
+  volumeMode: {{ .Values.persistence.volumeMode }}
   resources:
     requests:
-      storage: "1Gi"
+      storage: {{ .Values.persistence.size }}
+{{- end }}
