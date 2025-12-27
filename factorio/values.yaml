@@ -44,3 +44,8 @@ resources: {}
 podSecurityContext: {}
 
 securityContext: {}
+
+auth:
+  secretName: factorio-auth
+  usernameKey: username
+  tokenKey: token

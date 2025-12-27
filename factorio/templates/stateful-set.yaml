@@ -38,6 +38,17 @@ spec:
           volumeMounts:
             - name: factorio-data
               mountPath: /factorio
+          env:
+            - name: USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.secretName }}
+                  key: {{ .Values.auth.usernameKey }}
+            - name: TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.secretName }}
+                  key: {{ .Values.auth.tokenKey }}
           {{ with .Values.resources }}
           resources:
 {{ toYaml . | nindent 12 }}
